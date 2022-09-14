@@ -1,13 +1,17 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
-from googleapiclient.errors import HttpError
+import sys
 
 from config.sheets_api import conect_spreadsheet
+from fastapi import APIRouter
+from googleapiclient.errors import HttpError
+
+sys.path.append("..")
+
+from schemas.appointents_schema import AppointmentSchema
 
 # The ID and range of a sample spreadsheet.
 # SAMPLE_SPREADSHEET_ID = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'
 SPREADSHEET_ID = '13BpK8bKhmqljT1M71V_nvWw-Vu2C6TuxThvJGJWsnhA'
-RANGE_NAME = 'appointments_requests!A1:C1'
+RANGE_NAME = 'appointments_requests!A1:J1'
 
 # How the input data should be interpreted.
 VALUE_INPUT_OPTION = 'USER_ENTERED'  # TODO: Update placeholder value.
@@ -17,38 +21,50 @@ INSERT_DATA_OPTION = 'INSERT_ROWS'  # TODO: Update placeholder value.
 
 router = APIRouter()
 
-class AppointmentValues(BaseModel):
-    name: str
-    phone: int
-    id: str
 
-@router.get("/appointments", tags=["appointments"])
-async def read_appointments():
+
+@router.get("/appointments/{document_id}", tags=["appointments"])
+async def read_appointments(document_id):
+    filter = {}
     try:
         service = conect_spreadsheet()
         # Call the Sheets API
         sheet = service.spreadsheets()
         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
-                                    range=RANGE_NAME).execute()
+                                    range='appointments_requests!A2:L').execute()
         values = result.get('values', [])
 
         if not values:
             print('No data found.')
             return
-
-        print('Name, Major:')
         for row in values:
-            # Print columns A and E, which correspond to indices 0 and 4.
-            print('%s, %s' % (row[0], row[4]))
+            if row[3] == document_id:
+                filter[row[0]] = {
+                    "document_number": row[3],
+                    "requirement_type": row[7],
+                    "status": row[10]
+                }
     except HttpError as err:
         print(err)
-    return [{"username": "Rick"}, {"username": "Morty"}]
+    return filter
 
 
 @router.post("/appointments", tags=["appointments"])
-async def create_appointments(appointment_value: AppointmentValues):
+async def create_appointments(body: AppointmentSchema):
 
-    data = [[appointment_value.name,appointment_value.phone,appointment_value.id]]
+    data = [[
+        body.name,
+        body.phone,
+        body.document_type,
+        body.document_number,
+        body.email,
+        body.township,
+        body.eps,
+        body.requirement_type,
+        body.specialization_type,
+        ]]
+    if body.eps == "coosalud":
+        data.append(body.coosalud_diagnostic,)
     try:
         service = conect_spreadsheet()
         # Call the Sheets API
