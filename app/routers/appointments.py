@@ -1,7 +1,7 @@
-from schemas.appointents_schema import AppointmentSchema
+from ..schemas.appointents_schema import AppointmentSchema
 import sys
 
-from config.sheets_api import conect_spreadsheet
+from ..config.sheets_api import conect_spreadsheet
 from fastapi import APIRouter
 from googleapiclient.errors import HttpError
 
