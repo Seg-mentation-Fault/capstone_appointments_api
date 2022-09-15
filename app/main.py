@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from routers import appointments
-from config.generate_credentials import generate_credentials
+from app.routers import appointments
+from app.config.generate_credentials import generate_credentials
 app = FastAPI()
 
 generate_credentials()
