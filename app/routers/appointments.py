@@ -1,3 +1,4 @@
+from schemas.appointents_schema import AppointmentSchema
 import sys
 
 from config.sheets_api import conect_spreadsheet
@@ -6,7 +7,6 @@ from googleapiclient.errors import HttpError
 
 sys.path.append("..")
 
-from schemas.appointents_schema import AppointmentSchema
 
 # The ID and range of a sample spreadsheet.
 # SAMPLE_SPREADSHEET_ID = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'
@@ -20,7 +20,6 @@ VALUE_INPUT_OPTION = 'USER_ENTERED'  # TODO: Update placeholder value.
 INSERT_DATA_OPTION = 'INSERT_ROWS'  # TODO: Update placeholder value.
 
 router = APIRouter()
-
 
 
 @router.get("/appointments/{document_id}", tags=["appointments"])
@@ -62,18 +61,20 @@ async def create_appointments(body: AppointmentSchema):
         body.eps,
         body.requirement_type,
         body.specialization_type,
-        ]]
-    if body.eps == "coosalud":
-        data.append(body.coosalud_diagnostic,)
+        body.coosalud_diagnostic,
+        'Pendiente',
+        body.platform
+    ]]
+
     try:
         service = conect_spreadsheet()
         # Call the Sheets API
         sheet = service.spreadsheets()
         result = sheet.values().append(spreadsheetId=SPREADSHEET_ID,
-                                range=RANGE_NAME,
-                                valueInputOption=VALUE_INPUT_OPTION,
-                                insertDataOption=INSERT_DATA_OPTION,
-                                body={"values":data}).execute()
+                                       range=RANGE_NAME,
+                                       valueInputOption=VALUE_INPUT_OPTION,
+                                       insertDataOption=INSERT_DATA_OPTION,
+                                       body={"values": data}).execute()
         print(result)
         return result
     except HttpError as err:

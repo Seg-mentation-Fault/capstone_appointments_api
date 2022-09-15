@@ -10,3 +10,4 @@ class AppointmentSchema(BaseModel):
     requirement_type: str
     specialization_type: str
     coosalud_diagnostic: str
+    platform: str
