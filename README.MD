@@ -1,4 +1,6 @@
-# Capstone Appointments API
+# MEDAPP API
+ 
+
 
 source venv/bin/activate
 cd app/
